@@ -1,3 +1,5 @@
 urls.txt
 v1_command.txt
 .venv/
+temp/
+log.txt

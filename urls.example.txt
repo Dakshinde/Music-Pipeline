@@ -1,0 +1,8 @@
+# Add your YouTube playlist URLs here, one per line
+# Use proper playlist URLs (list=PL...) not YouTube Mix URLs (list=RD...)
+# Example:
+https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxxxx
+
+https://www.youtube.com/watch?v=7SACxTvWI8I&list=RD7SACxTvWI8I&start_radio=1&pp=ygUbYmVzdCB5b3V0dWJlIG11c2ljIHBsYXlsaXN0oAcB
+
+## You can add here single song url or even url of whole playlist but keep it computationally easy that means arround 100 
