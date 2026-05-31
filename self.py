@@ -2,24 +2,27 @@ import yt_dlp
 import subprocess
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-DEVICE="/org/gnome/Shell/Extensions/GSConnect/Device/3e4e19a95d644f8c9f997e120e1f4086"
-path = "/home/dakshhinde/Downloads/Music and Video"
+load_dotenv()
+DEVICE=os.getenv("DEVICE")
 
-temp_folder_mp3 = "/home/dakshhinde/Code/Music Pipeline/temp/%(title)s.mp3"
-temp_folder = "/home/dakshhinde/Code/Music Pipeline/temp"
+path = os.getenv("MAIN_FOLDER")
+
+temp_folder_mp3 = os.getenv("TEMP_FOLDER_MP3")
+temp_folder = os.getenv("TEMP_FOLDER")
 
 
 def transfer():
     for i in os.listdir(temp_folder):
         song = os.path.join(temp_folder,i)
-        subprocess.run(["gdbus" , "call" , "--session" , "--dest" , "org.gnome.Shell.Extensions.GSConnect" , "--object-path" , "/org/gnome/Shell/Extensions/GSConnect/Device/3e4e19a95d644f8c9f997e120e1f4086" , "--method" , "org.gtk.Actions.Activate" , "shareFile" , f"[<('file://{song}' , false)>]" , "{}"])
+        subprocess.run(["gdbus" , "call" , "--session" , "--dest" , "org.gnome.Shell.Extensions.GSConnect" , "--object-path" , DEVICE , "--method" , "org.gtk.Actions.Activate" , "shareFile" , f"[<('file://{song}' , false)>]" , "{}"])
         subprocess.run(["mv" , song ,  path])
     
     
 
 def isconnected():
-    task = subprocess.run(["gdbus" , "call" , "--session" , "--dest" , "org.gnome.Shell.Extensions.GSConnect" , "--object-path" , "/org/gnome/Shell/Extensions/GSConnect/Device/3e4e19a95d644f8c9f997e120e1f4086" , "--method" , "org.freedesktop.DBus.Properties.Get", "org.gnome.Shell.Extensions.GSConnect.Device" , "Connected"], capture_output=True, text=True)
+    task = subprocess.run(["gdbus" , "call" , "--session" , "--dest" , "org.gnome.Shell.Extensions.GSConnect" , "--object-path" , DEVICE , "--method" , "org.freedesktop.DBus.Properties.Get", "org.gnome.Shell.Extensions.GSConnect.Device" , "Connected"], capture_output=True, text=True)
     print(task.stdout)
     if "<true>" in task.stdout:
         print("Connected")
