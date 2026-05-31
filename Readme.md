@@ -14,13 +14,30 @@ This project is for solving the headache to copy paste urls from youtube and dow
 
 **I want to Automate this process**
 
-- Takes Youtube URL make sure its public
-- Uses yt_dlp to download the mp3
-- Transfer it to your phone via GSConnect / KDEConnect
-
 ## What stack does it use?
 
 - yt_dlp : to convert youtube urls to mp3
-- I run using subprocess library 
+- I run commands using subprocess library 
+
+## Setup for python
+- create a folder and clone this repo.
+- create virtual environment of python (.venv) (google how to create one its simple two commands)
+- python3 -m venv .venv && source .venv/bin/activate
+- pip install -r requirements.txt.
+- create your correct urls.txt and .env file as per instruction in urls.example.txt and .env.example.
+- python run now "python self.py".
+- if any error use AI to figure it out or email me.
+
+## Setup for Automatic script running
+
+We use cron_jobs for this part
+
+**Steps**
+- run "EDITOR="code --wait" crontab -e" to write the corn commands i prefer running this command in vscode terminal since editing the code is easy
+- write something like this in end "*/5 * * * * cd /your/project/path && /your/project/path/.venv/bin/python self.py" 
+- why "*/5 * * * * cd path of your directory where you clone the repo && write the path of python file with its .venv file"
+- save ctrl + s and close the app now the scrpit will run every 5min in your device when the device is up
+- for more information google this "What is a cron job and how do you set one up on Ubuntu?"
+
 
 **Made with sense by Dakshinde**
