@@ -11,7 +11,7 @@ path = os.getenv("MAIN_FOLDER")
 
 temp_folder_mp3 = os.getenv("TEMP_FOLDER_MP3")
 temp_folder = os.getenv("TEMP_FOLDER")
-
+YTDLP_PATH = os.getenv("YTDLP_PATH")
 
 def transfer():
     for i in os.listdir(temp_folder):
@@ -36,7 +36,7 @@ with open('urls.txt', 'r') as file:
     content = file.readlines()
     for i in content:
         print(i.strip())
-        subprocess.run(["yt-dlp" , "-x" , "--audio-format", "mp3" ,  "--yes-playlist" ,  "--audio-quality" , "0" , "-o", temp_folder_mp3, "--download-archive" , "archive.txt", i])
+        subprocess.run([YTDLP_PATH , "-x" , "--audio-format", "mp3" ,  "--yes-playlist" ,  "--audio-quality" , "0" , "-o", temp_folder_mp3, "--download-archive" , "archive.txt", i])
 
 
 files = os.listdir(temp_folder)

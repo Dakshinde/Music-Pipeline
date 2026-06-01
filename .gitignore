@@ -4,3 +4,4 @@ v1_command.txt
 temp/
 log.txt
 .env
+cron.log
