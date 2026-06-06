@@ -37,7 +37,7 @@ with open('urls.txt', 'r') as file:
     for i in content:
         print(i.strip())
         subprocess.run([YTDLP_PATH , "-x" , "--audio-format", "mp3" ,  "--yes-playlist" ,  "--audio-quality" , "0" , "-o", temp_folder_mp3, "--download-archive" , "archive.txt", i])
-
+        
 
 files = os.listdir(temp_folder)
 
@@ -47,6 +47,6 @@ if files:
         transfer()
     else:
         with open ('log.txt', 'a') as file:
-            file.write(f"Failed to transfer because of connection at {datetime.now()}")
+            file.write(f"Failed to transfer because of connection at {datetime.now()}\n")
          
          

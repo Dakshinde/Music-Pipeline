@@ -39,5 +39,8 @@ We use cron_jobs for this part
 - save ctrl + s and close the app now the scrpit will run every 5min in your device when the device is up
 - for more information google this "What is a cron job and how do you set one up on Ubuntu?"
 
+## Known Issues (V1)
+- Songs stay in temp folder if phone is disconnected during cron run
+- Workaround: run `python self.py` manually when phone is reconnected
 
 **Made with sense by Dakshinde**

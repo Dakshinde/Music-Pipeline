@@ -5,3 +5,4 @@ temp/
 log.txt
 .env
 cron.log
+error.log
