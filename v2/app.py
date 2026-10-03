@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import yt_dlp
 
-# Automatically download & expose static ffmpeg binaries on boot
+# Register static ffmpeg paths on boot
 static_ffmpeg.add_paths()
 
 app = Flask(__name__)
@@ -53,8 +53,9 @@ def process_download():
         return jsonify({"error": "DRIVE_FOLDER_ID not set"}), 500
 
     with tempfile.TemporaryDirectory() as temp_dir:
+        # Configuration tuned for cloud datacenter environments (Render, AWS, DigitalOcean)
         ydl_opts = {
-            'format': 'ba/b',  # Best audio, fallback to best single format
+            'format': 'bestaudio/best',
             'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
@@ -64,10 +65,18 @@ def process_download():
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
+            # Force client players that bypass YouTube datacenter blocks
             'extractor_args': {
                 'youtube': {
-                    'player_client': ['mweb', 'android', 'web']
+                    'player_client': ['ios', 'android', 'mweb'],
+                    'skip': ['hls', 'dash']
                 }
+            },
+            # Spoof regular browser user agent headers
+            'http_headers': {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-us,en;q=0.5',
             }
         }
 
@@ -76,9 +85,10 @@ def process_download():
                 info = ydl.extract_info(url, download=True)
                 song_title = info.get('title', 'Unknown Title')
                 
-                # Locate extracted mp3 file in working temp dir
+                # Search for converted MP3 file
                 downloaded_files = [f for f in os.listdir(temp_dir) if f.endswith('.mp3')]
                 if not downloaded_files:
+                    # Fallback check for raw audio formats
                     downloaded_files = os.listdir(temp_dir)
                 
                 if not downloaded_files:
