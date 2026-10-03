@@ -66,7 +66,6 @@ def process_download():
             if raw_cookies_b64:
                 cookie_path = os.path.join(temp_dir, "cookies.txt")
                 try:
-                    # Handle both plain base64 and potential raw string fallback
                     decoded_cookies = base64.b64decode(raw_cookies_b64.strip()).decode("utf-8")
                 except Exception:
                     decoded_cookies = raw_cookies_b64
@@ -75,7 +74,7 @@ def process_download():
                     f.write(decoded_cookies)
 
             ydl_opts = {
-                'format': 'ba/ba*/bestaudio/best',
+                'format': 'bestaudio/best',
                 'outtmpl': os.path.join(temp_dir, '%(id)s.%(ext)s'),
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
