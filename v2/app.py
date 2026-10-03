@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import yt_dlp
 
+# Register static ffmpeg binaries on container boot
 static_ffmpeg.add_paths()
 
 app = Flask(__name__)
@@ -68,6 +69,7 @@ def process_download():
                 }],
                 'quiet': True,
                 'noplaylist': True,
+                'nocheckcertificate': True,
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
