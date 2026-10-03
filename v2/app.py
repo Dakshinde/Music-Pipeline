@@ -10,7 +10,6 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import yt_dlp
 
-# Register static ffmpeg binaries on container boot
 static_ffmpeg.add_paths()
 
 app = Flask(__name__)
@@ -60,7 +59,7 @@ def process_download():
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             ydl_opts = {
-                'format': 'bestaudio/best',
+                'format': 'ba/ba*/bestaudio/best',
                 'outtmpl': os.path.join(temp_dir, '%(id)s.%(ext)s'),
                 'postprocessors': [{
                     'key': 'FFmpegExtractAudio',
@@ -70,6 +69,11 @@ def process_download():
                 'quiet': True,
                 'noplaylist': True,
                 'nocheckcertificate': True,
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['web_creator', 'mweb', 'android']
+                    }
+                }
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
