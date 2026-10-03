@@ -1,19 +1,22 @@
 import os
 import json
 import tempfile
-import yt_dlp
+import static_ffmpeg
 from flask import Flask, jsonify, request
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+import yt_dlp
+
+# Automatically downloads and sets up ffmpeg static binaries on boot
+static_ffmpeg.add_paths()
 
 app = Flask(__name__)
 
 def get_drive_service():
     creds_json = os.environ.get("GOOGLE_CREDENTIALS")
     if not creds_json:
-        raise ValueError("GOOGLE_CREDENTIALS environment variable is missing.")
-    
+        raise ValueError("GOOGLE_CREDENTIALS environment variable missing")
     creds_dict = json.loads(creds_json)
     creds = Credentials.from_service_account_info(
         creds_dict, scopes=["https://www.googleapis.com/auth/drive.file"]
@@ -42,47 +45,48 @@ def test_drive():
 def process_download():
     data = request.get_json() or {}
     url = data.get("url")
-    
     if not url:
         return jsonify({"error": "No URL provided"}), 400
 
     folder_id = os.environ.get("DRIVE_FOLDER_ID")
     if not folder_id:
-        return jsonify({"error": "DRIVE_FOLDER_ID environment variable not set"}), 500
+        return jsonify({"error": "DRIVE_FOLDER_ID not set"}), 500
 
-    # Use system temp directory for transient files
     with tempfile.TemporaryDirectory() as temp_dir:
         ydl_opts = {
             'format': 'bestaudio/best',
+            'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
-                'preferredquality': '192',
+                'preferredquality': '0',
             }],
-            'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'quiet': True,
             'no_warnings': True,
         }
 
         try:
-            # 1. Download and extract MP3 using yt-dlp
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info)
-                # yt-dlp replaces extension with .mp3 during postprocessing
-                mp3_filename = os.path.splitext(filename)[0] + ".mp3"
                 song_title = info.get('title', 'Unknown Title')
+                
+                # Locate processed file in temp folder
+                downloaded_files = [f for f in os.listdir(temp_dir) if f.endswith('.mp3')]
+                if not downloaded_files:
+                    # Fallback check for any audio format downloaded
+                    downloaded_files = os.listdir(temp_dir)
+                
+                if not downloaded_files:
+                    return jsonify({"error": "Audio file not generated"}), 500
+                
+                file_path = os.path.join(temp_dir, downloaded_files[0])
 
-            if not os.path.exists(mp3_filename):
-                return jsonify({"error": "Failed to process audio file"}), 500
-
-            # 2. Upload MP3 to Google Drive
             service = get_drive_service()
             file_metadata = {
                 'name': f"{song_title}.mp3",
                 'parents': [folder_id]
             }
-            media = MediaFileUpload(mp3_filename, mimetype='audio/mpeg', resumable=True)
+            media = MediaFileUpload(file_path, mimetype='audio/mpeg', resumable=True)
             
             uploaded_file = service.files().create(
                 body=file_metadata,
