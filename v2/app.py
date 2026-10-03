@@ -9,6 +9,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import yt_dlp
+import base64
 
 # Register static ffmpeg binaries on container boot
 static_ffmpeg.add_paths()
@@ -60,13 +61,18 @@ def process_download():
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             cookie_path = None
-            
-            # Read cookies from Render env var and save temporarily
-            raw_cookies = os.environ.get("YOUTUBE_COOKIES")
-            if raw_cookies:
+    
+            raw_cookies_b64 = os.environ.get("YOUTUBE_COOKIES")
+            if raw_cookies_b64:
                 cookie_path = os.path.join(temp_dir, "cookies.txt")
+                try:
+                    # Handle both plain base64 and potential raw string fallback
+                    decoded_cookies = base64.b64decode(raw_cookies_b64.strip()).decode("utf-8")
+                except Exception:
+                    decoded_cookies = raw_cookies_b64
+
                 with open(cookie_path, "w", encoding="utf-8") as f:
-                    f.write(raw_cookies)
+                    f.write(decoded_cookies)
 
             ydl_opts = {
                 'format': 'ba/ba*/bestaudio/best',
