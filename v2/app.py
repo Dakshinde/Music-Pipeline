@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import yt_dlp
 
-# Automatically downloads and sets up ffmpeg static binaries on boot
+# Automatically download & expose static ffmpeg binaries on boot
 static_ffmpeg.add_paths()
 
 app = Flask(__name__)
@@ -54,7 +54,7 @@ def process_download():
 
     with tempfile.TemporaryDirectory() as temp_dir:
         ydl_opts = {
-            'format': 'bestaudio/best',
+            'format': 'ba/b',  # Best audio, fallback to best single format
             'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
@@ -63,6 +63,12 @@ def process_download():
             }],
             'quiet': True,
             'no_warnings': True,
+            'nocheckcertificate': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['mweb', 'android', 'web']
+                }
+            }
         }
 
         try:
@@ -70,14 +76,13 @@ def process_download():
                 info = ydl.extract_info(url, download=True)
                 song_title = info.get('title', 'Unknown Title')
                 
-                # Locate processed file in temp folder
+                # Locate extracted mp3 file in working temp dir
                 downloaded_files = [f for f in os.listdir(temp_dir) if f.endswith('.mp3')]
                 if not downloaded_files:
-                    # Fallback check for any audio format downloaded
                     downloaded_files = os.listdir(temp_dir)
                 
                 if not downloaded_files:
-                    return jsonify({"error": "Audio file not generated"}), 500
+                    return jsonify({"error": "Audio conversion failed"}), 500
                 
                 file_path = os.path.join(temp_dir, downloaded_files[0])
 
