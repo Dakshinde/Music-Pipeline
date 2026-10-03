@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import yt_dlp
 
+# Register static ffmpeg binaries on container boot
 static_ffmpeg.add_paths()
 
 app = Flask(__name__)
@@ -58,6 +59,15 @@ def process_download():
 
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
+            cookie_path = None
+            
+            # Read cookies from Render env var and save temporarily
+            raw_cookies = os.environ.get("YOUTUBE_COOKIES")
+            if raw_cookies:
+                cookie_path = os.path.join(temp_dir, "cookies.txt")
+                with open(cookie_path, "w", encoding="utf-8") as f:
+                    f.write(raw_cookies)
+
             ydl_opts = {
                 'format': 'ba/ba*/bestaudio/best',
                 'outtmpl': os.path.join(temp_dir, '%(id)s.%(ext)s'),
@@ -69,12 +79,10 @@ def process_download():
                 'quiet': True,
                 'noplaylist': True,
                 'nocheckcertificate': True,
-                'extractor_args': {
-                    'youtube': {
-                        'player_client': ['web_creator', 'mweb', 'android']
-                    }
-                }
             }
+
+            if cookie_path and os.path.exists(cookie_path):
+                ydl_opts['cookiefile'] = cookie_path
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
